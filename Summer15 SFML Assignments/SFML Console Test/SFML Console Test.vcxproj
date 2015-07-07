@@ -41,13 +41,13 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>B:\Documents\GitHub\CPP-SFML-Assignments\SFML-2.3\include;$(IncludePath)</IncludePath>
-    <LibraryPath>B:\Documents\GitHub\CPP-SFML-Assignments\SFML-2.3\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>B:\Documents\GitHub\CPP-SFML-Assignments\Summer15 SFML Assignments\SFML-2.3\include;$(IncludePath)</IncludePath>
+    <LibraryPath>B:\Documents\GitHub\CPP-SFML-Assignments\Summer15 SFML Assignments\SFML-2.3\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>B:\Documents\GitHub\CPP-SFML-Assignments\SFML-2.3\include;$(IncludePath)</IncludePath>
-    <LibraryPath>B:\Documents\GitHub\CPP-SFML-Assignments\SFML-2.3\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>B:\Documents\GitHub\CPP-SFML-Assignments\Summer15 SFML Assignments\SFML-2.3\include;$(IncludePath)</IncludePath>
+    <LibraryPath>B:\Documents\GitHub\CPP-SFML-Assignments\Summer15 SFML Assignments\SFML-2.3\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
