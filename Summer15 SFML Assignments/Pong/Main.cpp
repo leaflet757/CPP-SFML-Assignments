@@ -1,9 +1,9 @@
 #include <SFML/Graphics.hpp>
+#include <SFML/OpenGL.hpp>
 #include <cstdio>
 #include <thread>
-#include <iostream>
 #include <mutex>
-#include <string>
+#include <iostream>
 
 using namespace std;
 
@@ -11,17 +11,27 @@ using namespace std;
 std::mutex _lock;
 
 bool running = true;
-long int testNum = 0;
-long updateNumer = 0;
+float r = 0, g = 0.3, b = 0.6;
 
-// Create Dummy Shape
-sf::CircleShape shape(10.f);
 
-void renderingFunction(sf::RenderWindow* window)
+void renderingFunction(sf::Window* window)
 {
 	// activate the window's context
 	window->setActive(true);
 	window->setVerticalSyncEnabled(true);
+
+	// adjust for the screen ratio
+	float width = window->getSize().x;
+	float height = window->getSize().y;
+
+	// update the size of the viewport
+	glViewport(0, 0, width, height);
+	glMatrixMode(GL_PROJECTION);
+	float aspect = (float)width / (float)height;
+	glOrtho(-aspect, aspect, -1, 1, -1, 1);
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
 
 	// the rendering loop
 	while (running)
@@ -30,13 +40,15 @@ void renderingFunction(sf::RenderWindow* window)
 		_lock.lock();
 
 		// clear the buffers
-		window->clear();
-
-		// DEBUG
-		cout << "render " << testNum-- << endl;
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// draw...
-		window->draw(shape);
+		glBegin(GL_TRIANGLES);
+		glColor3f(r, g, b);
+		glVertex2f(-0.5, -0.5);
+		glVertex2f(0.5, -0.5);
+		glVertex2f(0, 0.5);
+		glEnd();
 
 		// end the current frame (internally swaps the front and back buffers)
 		window->display();
@@ -46,23 +58,20 @@ void renderingFunction(sf::RenderWindow* window)
 	}
 }
 
-void updateFunction(sf::RenderWindow* window)
+void updateFunction(sf::Window* window)
 {
-	// DEBUG
-	shape.setPosition(0, window->getSize().y / 2 - shape.getRadius());
-	shape.setFillColor(sf::Color::Green);
-
 	while (running)
 	{
 		// lock thread to finish updating
 		_lock.lock();
 
-
 		// Update logic...
-		cout << "logic " << testNum++ << endl;
-		cout << "   update number: " << updateNumer++ << endl;
-		shape.setPosition(shape.getPosition().x + 1, shape.getPosition().y);
-
+		r += 0.01;
+		g += 0.01;
+		b += 0.01;
+		if (r > 1) r = 0;
+		if (g > 1) g = 0;
+		if (b > 1) b = 0;
 
 		// release lock for rendering thread
 		_lock.unlock();
@@ -70,20 +79,21 @@ void updateFunction(sf::RenderWindow* window)
 }
 
 int main()
-{ 
+{
 	// create the window (remember: it's safer to create it in the main thread due to OS limitations)
-	sf::RenderWindow window(sf::VideoMode(800, 600), "Pong");
+	sf::Window window(sf::VideoMode(1280, 720), "Pong", sf::Style::None);
 
 	// deactivate its OpenGL context
 	window.setActive(false);
 
-	// launch the rendering & update thread
+	// launch the rendering thread
 	thread updateThread(updateFunction, &window);
 	thread renderingThread(renderingFunction, &window);
-	
-	// Main thread to check for window closing
+
+	// the event/logic/whatever loop
 	while (window.isOpen())
 	{
+		// ...
 		sf::Event event;
 		while (window.pollEvent(event))
 		{
@@ -91,6 +101,11 @@ int main()
 			{
 				window.close();
 				running = false;
+			}
+			else if (event.type == sf::Event::Resized)
+			{
+				// adjust the viewport when the window is resized
+				glViewport(0, 0, event.size.width, event.size.height);
 			}
 		}
 	}
