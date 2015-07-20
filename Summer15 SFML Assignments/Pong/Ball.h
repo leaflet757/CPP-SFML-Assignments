@@ -8,5 +8,7 @@ class Ball :
 public:
 	Ball();
 	~Ball();
+
+	void update();
 };
 

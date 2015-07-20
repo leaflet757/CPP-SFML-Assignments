@@ -5,8 +5,8 @@ int main()
 {
 	OpenSFMLEngine::Game game;
 
-	game.Start();
-
+	game.initActors();
+	game.start();
 
 	return 0;
 }

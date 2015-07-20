@@ -14,14 +14,35 @@ namespace OpenSFMLEngine
 
 	Game::~Game()
 	{
+		// stop threads
+		renderingThread->join();
+		updateThread->join();
+
+
+		delete clock;
+		delete updateThread;
+		delete renderingThread;
 		delete window;
 	}
 
-	void Game::Start()
+	Game& Game::getInstance()
 	{
+		static Game game;
+		return game;
+	}
+
+	void Game::initActors()
+	{
+		actors.push_back(new Ball());
+	}
+
+	void Game::start()
+	{
+		clock = new sf::Clock();
+
 		// launch the rendering thread
-		thread updateThread(&OpenSFMLEngine::Game::updateFunction, this);
-		thread renderingThread(&OpenSFMLEngine::Game::renderingFunction, this);
+		updateThread = new thread(&OpenSFMLEngine::Game::updateFunction, this);
+		renderingThread = new thread(&OpenSFMLEngine::Game::renderingFunction, this);
 
 		// the event/logic/whatever loop
 		while (window->isOpen())
@@ -42,10 +63,6 @@ namespace OpenSFMLEngine
 				}
 			}
 		}
-
-		// stop threads
-		renderingThread.join();
-		updateThread.join();
 	}
 
 	void Game::renderingFunction()
@@ -76,13 +93,34 @@ namespace OpenSFMLEngine
 			// clear the buffers
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-			// draw...
-			glColor3f(r, g, b);
-			glBegin(GL_POLYGON);
-			glVertex2f(-1, -1);
-			glVertex2f(1, -1);
-			glVertex2f(0, 1);
-			glEnd();
+			for (int a = 0; a < actors.size(); a++)
+			{
+				Actor2D* actor = actors.at(a);
+
+				glPushMatrix();
+
+				const glm::vec3 scale = actor->getScale();
+				const glm::vec3 position = actor->getPosition();
+
+				glTranslatef(position.x, position.y, position.z);
+				glScalef(scale.x, scale.y, scale.z);
+
+				// draw...
+				glColor3f(r, g, b);
+				glBegin(GL_POLYGON);
+
+				std::vector<glm::vec3> verts = actor->getVerts();
+				for (int i = 0; i < verts.size(); i++)
+				{
+					const glm::vec3 vertex = verts.at(i);
+					glVertex2f(vertex.x, vertex.y);
+				}
+
+				// draw end...
+				glEnd();
+
+				glPopMatrix();
+			}
 
 			// end the current frame (internally swaps the front and back buffers)
 			window->display();
@@ -106,6 +144,27 @@ namespace OpenSFMLEngine
 			if (r > 1) r = 0;
 			if (g > 1) g = 0;
 			if (b > 1) b = 0;
+
+			sf::Time elapsed1 = clock->getElapsedTime();
+			float deltaTime = elapsed1.asSeconds();
+			clock->restart();
+
+			for (int a = 0; a < actors.size(); a++)
+			{
+				Actor2D* actor = actors.at(a);
+
+				actor->update();
+
+				const glm::vec3 velocity = actor->getVelocity();
+				const glm::vec3 position = actor->getPosition();
+				
+				glm::vec3 newPosition;
+				newPosition.x = position.x + velocity.x * deltaTime;
+				newPosition.y = position.y + velocity.y * deltaTime;
+				newPosition.z = position.z + velocity.z * deltaTime;
+
+				actor->setPosition(newPosition.x, newPosition.y, newPosition.z);
+			}
 
 			// double result = MathFuncs::MyMathFuncs::Add(0.2, 0.3); // test to see if engine works
 

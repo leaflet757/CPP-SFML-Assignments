@@ -9,6 +9,8 @@
 
 #include <MathFuncsDll.h> // test
 
+#include "Ball.h"
+
 using namespace std;
 
 
@@ -19,16 +21,30 @@ namespace OpenSFMLEngine
 	private:
 		sf::Window* window;
 
+		thread* renderingThread;
+		thread* updateThread;
+
+		vector<Actor2D*> actors;
+
 		std::mutex _lock;
+
+		sf::Clock* clock;
 
 		bool running = true;
 		float r = 0, g = 0.3, b = 0.6;
 
+		Game(Game const&) = delete;
+		void operator=(Game const&) = delete;
+
 	public:
 		Game();
-		~Game();
+		~Game(); // TODO: would this be private too?
 
-		void Start();
+		static Game& getInstance();
+
+		void start();
+
+		virtual void initActors();
 
 		void renderingFunction();
 		void updateFunction();
